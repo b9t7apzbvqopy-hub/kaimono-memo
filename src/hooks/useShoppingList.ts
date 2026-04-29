@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import * as api from "@/lib/api-client";
-import type { ShoppingItem, ShoppingList } from "@/types";
+import type { ShoppingList } from "@/types";
+import * as storage from "@/lib/storage";
 
 export function useShoppingList(initialData: ShoppingList) {
   const [list, setList] = useState<ShoppingList>(initialData);
@@ -10,143 +10,70 @@ export function useShoppingList(initialData: ShoppingList) {
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+    setTimeout(() => setToastMessage(null), 2500);
   };
 
   const addItem = useCallback(
-    async (text: string) => {
-      const tempId = `temp-${Date.now()}`;
-      const tempItem: ShoppingItem = {
-        id: tempId,
-        text,
-        checked: false,
-        createdAt: Date.now(),
-      };
+    (text: string) => {
+      const item = storage.addItem(list.id, text);
       setList((prev) => ({
         ...prev,
-        items: [...prev.items, tempItem],
+        items: [...prev.items, item],
+        updatedAt: Date.now(),
       }));
-
-      try {
-        const item = await api.addItem(list.id, text);
-        setList((prev) => ({
-          ...prev,
-          items: prev.items.map((i) => (i.id === tempId ? item : i)),
-        }));
-      } catch {
-        setList((prev) => ({
-          ...prev,
-          items: prev.items.filter((i) => i.id !== tempId),
-        }));
-        showToast("追加に失敗しました");
-      }
     },
     [list.id]
   );
 
   const toggleItem = useCallback(
-    async (itemId: string) => {
+    (itemId: string) => {
       const item = list.items.find((i) => i.id === itemId);
       if (!item) return;
-      const newChecked = !item.checked;
-
+      const checked = !item.checked;
+      storage.patchItem(list.id, itemId, { checked });
       setList((prev) => ({
         ...prev,
-        items: prev.items.map((i) =>
-          i.id === itemId ? { ...i, checked: newChecked } : i
-        ),
+        items: prev.items.map((i) => (i.id === itemId ? { ...i, checked } : i)),
+        updatedAt: Date.now(),
       }));
-
-      try {
-        await api.patchItem(list.id, itemId, { checked: newChecked });
-      } catch {
-        setList((prev) => ({
-          ...prev,
-          items: prev.items.map((i) =>
-            i.id === itemId ? { ...i, checked: !newChecked } : i
-          ),
-        }));
-        showToast("更新に失敗しました");
-      }
     },
     [list.id, list.items]
   );
 
   const editItem = useCallback(
-    async (itemId: string, text: string) => {
-      const prev_text =
-        list.items.find((i) => i.id === itemId)?.text ?? "";
-
+    (itemId: string, text: string) => {
+      storage.patchItem(list.id, itemId, { text });
       setList((prev) => ({
         ...prev,
         items: prev.items.map((i) => (i.id === itemId ? { ...i, text } : i)),
+        updatedAt: Date.now(),
       }));
-
-      try {
-        await api.patchItem(list.id, itemId, { text });
-      } catch {
-        setList((prev) => ({
-          ...prev,
-          items: prev.items.map((i) =>
-            i.id === itemId ? { ...i, text: prev_text } : i
-          ),
-        }));
-        showToast("編集に失敗しました");
-      }
     },
-    [list.id, list.items]
+    [list.id]
   );
 
   const deleteItem = useCallback(
-    async (itemId: string) => {
-      const removed = list.items.find((i) => i.id === itemId);
+    (itemId: string) => {
+      storage.removeItem(list.id, itemId);
       setList((prev) => ({
         ...prev,
         items: prev.items.filter((i) => i.id !== itemId),
+        updatedAt: Date.now(),
       }));
-
-      try {
-        await api.deleteItem(list.id, itemId);
-      } catch {
-        if (removed) {
-          setList((prev) => ({
-            ...prev,
-            items: [...prev.items, removed].sort(
-              (a, b) => a.createdAt - b.createdAt
-            ),
-          }));
-        }
-        showToast("削除に失敗しました");
-      }
     },
-    [list.id, list.items]
+    [list.id]
   );
 
   const updateMeta = useCallback(
-    async (
-      patch: Partial<Pick<ShoppingList, "name" | "icon" | "background">>
-    ) => {
-      const prev = { name: list.name, icon: list.icon, background: list.background };
-      setList((l) => ({ ...l, ...patch }));
-
-      try {
-        const updated = await api.updateList(list.id, patch);
+    (patch: Partial<Pick<ShoppingList, "name" | "icon" | "background">>) => {
+      const updated = storage.updateListMeta(list.id, patch);
+      if (updated) {
         setList(updated);
-      } catch {
-        setList((l) => ({ ...l, ...prev }));
-        showToast("保存に失敗しました");
+        showToast("保存しました ✓");
       }
     },
-    [list.id, list.name, list.icon, list.background]
+    [list.id]
   );
 
-  return {
-    list,
-    toastMessage,
-    addItem,
-    toggleItem,
-    editItem,
-    deleteItem,
-    updateMeta,
-  };
+  return { list, toastMessage, addItem, toggleItem, editItem, deleteItem, updateMeta };
 }

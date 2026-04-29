@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMyLists } from "@/hooks/useMyLists";
 import { ListCard } from "./ListCard";
-import * as api from "@/lib/api-client";
+import * as storage from "@/lib/storage";
 import type { ShoppingList } from "@/types";
 
 export function MyListsPage() {
@@ -18,39 +18,34 @@ export function MyListsPage() {
   useEffect(() => {
     if (listIds.length === 0) {
       setLoading(false);
+      setLists([]);
       return;
     }
-    setLoading(true);
-    Promise.all(listIds.map((id) => api.getList(id))).then((results) => {
-      const valid: ShoppingList[] = [];
-      results.forEach((list, i) => {
-        if (list) {
-          valid.push(list);
-        } else {
-          removeListId(listIds[i]);
-        }
-      });
-      setLists(valid);
-      setLoading(false);
+    const valid: ShoppingList[] = [];
+    listIds.forEach((id) => {
+      const list = storage.getList(id);
+      if (list) {
+        valid.push(list);
+      } else {
+        removeListId(id);
+      }
     });
+    setLists(valid);
+    setLoading(false);
   }, [listIds.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleCreate = useCallback(async () => {
+  const handleCreate = useCallback(() => {
     if (creating) return;
     setCreating(true);
-    try {
-      const list = await api.createList();
-      addListId(list.id);
-      router.push(`/list/${list.id}`);
-    } finally {
-      setCreating(false);
-    }
+    const list = storage.createList();
+    addListId(list.id);
+    router.push(`/list/${list.id}`);
   }, [addListId, router, creating]);
 
   const handleDelete = useCallback(
-    async (id: string) => {
+    (id: string) => {
       if (!confirm("このリストを削除しますか？")) return;
-      await api.deleteList(id);
+      storage.deleteList(id);
       removeListId(id);
       setLists((prev) => prev.filter((l) => l.id !== id));
     },
@@ -61,7 +56,6 @@ export function MyListsPage() {
     const code = shareCode.trim();
     if (!code) return;
     const id = code.includes("/") ? code.split("/").pop()! : code;
-    addListId(id);
     router.push(`/list/${id}`);
   };
 
