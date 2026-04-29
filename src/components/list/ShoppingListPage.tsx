@@ -28,29 +28,31 @@ export function ShoppingListPage({ initialData }: ShoppingListPageProps) {
 
   return (
     <BackgroundWrapper background={list.background}>
-      <div className="min-h-screen flex flex-col max-w-lg mx-auto">
-        <AppHeader
-          name={list.name}
-          icon={list.icon}
-          onCustomize={() => setCustomizeOpen(true)}
-          showBack
-        />
-
-        <div className="flex items-center justify-end px-4 py-2">
-          <ShareButton listId={list.id} />
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2 pb-4">
-          <ItemList
-            items={list.items}
-            onToggle={toggleItem}
-            onEdit={editItem}
-            onDelete={deleteItem}
+      <div className="min-h-screen flex flex-col">
+        <div className="max-w-[440px] mx-auto w-full flex flex-col flex-1">
+          <AppHeader
+            name={list.name}
+            icon={list.icon}
+            onCustomize={() => setCustomizeOpen(true)}
+            showBack
           />
-        </div>
 
-        <div className="sticky bottom-0">
-          <ItemInput onAdd={addItem} />
+          <div className="flex items-center justify-end px-4 py-2">
+            <ShareButton listId={list.id} />
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2 pb-4">
+            <ItemList
+              items={list.items}
+              onToggle={toggleItem}
+              onEdit={editItem}
+              onDelete={deleteItem}
+            />
+          </div>
+
+          <div className="sticky bottom-0">
+            <ItemInput onAdd={addItem} />
+          </div>
         </div>
       </div>
 

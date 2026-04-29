@@ -75,7 +75,7 @@ export function CustomizeDrawer({
                 onClick={() => setTab(t)}
                 className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                   tab === t
-                    ? "border-primary text-primary"
+                    ? "border-orange-400 text-orange-500"
                     : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -94,7 +94,7 @@ export function CustomizeDrawer({
                 onChange={(e) => setName(e.target.value)}
                 placeholder="かいものメモ"
                 maxLength={30}
-                className="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50 text-gray-800 text-lg"
+                className="w-full px-4 py-3 rounded-[14px] border border-orange-100 bg-orange-50/40 focus:outline-none focus:ring-2 focus:ring-orange-200 text-gray-800 text-lg"
               />
             </div>
           )}
@@ -109,7 +109,7 @@ export function CustomizeDrawer({
         <div className="p-4 border-t border-gray-100">
           <button
             onClick={handleSave}
-            className="w-full py-3 bg-primary text-white rounded-2xl font-medium text-lg hover:bg-primary-dark active:scale-98 transition-all"
+            className="w-full py-3.5 btn-orange text-lg"
           >
             保存する
           </button>

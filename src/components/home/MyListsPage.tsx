@@ -12,13 +12,14 @@ export function MyListsPage() {
   const { listIds, addListId, removeListId } = useMyLists();
   const [lists, setLists] = useState<ShoppingList[]>([]);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [shareCode, setShareCode] = useState("");
 
   useEffect(() => {
     if (listIds.length === 0) {
       setLoading(false);
       return;
     }
-
     setLoading(true);
     Promise.all(listIds.map((id) => api.getList(id))).then((results) => {
       const valid: ShoppingList[] = [];
@@ -35,10 +36,16 @@ export function MyListsPage() {
   }, [listIds.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCreate = useCallback(async () => {
-    const list = await api.createList();
-    addListId(list.id);
-    router.push(`/list/${list.id}`);
-  }, [addListId, router]);
+    if (creating) return;
+    setCreating(true);
+    try {
+      const list = await api.createList();
+      addListId(list.id);
+      router.push(`/list/${list.id}`);
+    } finally {
+      setCreating(false);
+    }
+  }, [addListId, router, creating]);
 
   const handleDelete = useCallback(
     async (id: string) => {
@@ -50,45 +57,76 @@ export function MyListsPage() {
     [removeListId]
   );
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-100">
-      <header className="px-4 pt-8 pb-4">
-        <h1 className="text-2xl font-bold text-gray-800">🛒 かいものメモ</h1>
-        <p className="text-sm text-gray-500 mt-1">マイリスト</p>
-      </header>
+  const handleOpenShare = () => {
+    const code = shareCode.trim();
+    if (!code) return;
+    const id = code.includes("/") ? code.split("/").pop()! : code;
+    addListId(id);
+    router.push(`/list/${id}`);
+  };
 
-      <main className="px-4 pb-24 max-w-lg mx-auto">
-        {loading ? (
-          <div className="flex justify-center py-16">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+  return (
+    <div className="min-h-screen" style={{ background: "linear-gradient(168deg, #FFF8F0 0%, #FFF1E6 40%, #FFE8D6 100%)" }}>
+      <div className="max-w-[440px] mx-auto px-4 pt-12 pb-24">
+
+        {/* Hero */}
+        <div className="flex flex-col items-center mb-10">
+          <div
+            className="w-24 h-24 rounded-full flex items-center justify-center shadow-lg mb-5"
+            style={{ background: "linear-gradient(135deg, #FF8C42, #FF6B35)" }}
+          >
+            <span className="text-5xl">🛒</span>
           </div>
-        ) : lists.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-            <span className="text-6xl">🛒</span>
-            <p className="text-gray-500">リストがまだありません</p>
+          <h1 className="text-2xl font-bold text-gray-800 tracking-wide">かいものメモ</h1>
+          <p className="text-sm text-gray-400 mt-1">みんなで使える買い物リスト</p>
+        </div>
+
+        {/* Create button */}
+        <button
+          onClick={handleCreate}
+          disabled={creating}
+          className="w-full py-4 text-lg btn-orange disabled:opacity-60"
+        >
+          {creating ? "作成中..." : "+ 新しいリストを作る"}
+        </button>
+
+        {/* Share code input */}
+        <div className="card mt-4 p-4">
+          <p className="text-sm text-gray-500 mb-3 font-medium">共有リンク・IDから開く</p>
+          <div className="flex gap-2">
+            <input
+              value={shareCode}
+              onChange={(e) => setShareCode(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleOpenShare()}
+              placeholder="URLまたはリストIDを貼り付け"
+              className="flex-1 px-3 py-2.5 rounded-xl border border-orange-100 bg-orange-50/50 text-sm outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all"
+            />
             <button
-              onClick={handleCreate}
-              className="px-6 py-3 bg-primary text-white rounded-2xl font-medium text-lg hover:bg-primary-dark active:scale-95 transition-all shadow-md"
+              onClick={handleOpenShare}
+              disabled={!shareCode.trim()}
+              className="px-4 py-2.5 btn-orange text-sm disabled:opacity-40"
             >
-              リストを作る
+              開く
             </button>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {lists.map((list) => (
-              <ListCard key={list.id} list={list} onDelete={handleDelete} />
-            ))}
-          </div>
-        )}
-      </main>
+        </div>
 
-      <button
-        onClick={handleCreate}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-lg hover:bg-primary-dark active:scale-95 transition-all text-2xl flex items-center justify-center"
-        aria-label="新しいリストを作成"
-      >
-        +
-      </button>
+        {/* My lists */}
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="w-8 h-8 border-4 border-orange-300 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : lists.length > 0 ? (
+          <div className="mt-8">
+            <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">マイリスト</h2>
+            <div className="space-y-3">
+              {lists.map((list) => (
+                <ListCard key={list.id} list={list} onDelete={handleDelete} />
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

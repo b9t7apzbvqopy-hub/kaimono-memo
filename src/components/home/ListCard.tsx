@@ -14,13 +14,9 @@ export function ListCard({ list, onDelete }: ListCardProps) {
   const done = list.items.filter((i) => i.checked).length;
 
   const theme = BACKGROUND_THEMES[list.background];
-  const bgStyle = list.background.startsWith("data:")
+  const swatchStyle = list.background.startsWith("data:")
     ? { backgroundImage: `url(${list.background})`, backgroundSize: "cover", backgroundPosition: "center" }
-    : undefined;
-  const bgClass = theme
-    ? `bg-gradient-to-br ${theme.fromClass} ${theme.toClass}`
-    : "bg-gradient-to-br from-orange-300 to-rose-400";
-  const textClass = theme?.textClass ?? "text-white";
+    : { background: theme?.swatchColor ?? "linear-gradient(135deg, #FF8C42, #FF6B35)" };
 
   const iconDisplay = list.icon.startsWith("data:")
     ? <img src={list.icon} alt="icon" className="w-8 h-8 rounded-lg object-cover" />
@@ -30,31 +26,35 @@ export function ListCard({ list, onDelete }: ListCardProps) {
     <div className="relative group">
       <Link
         href={`/list/${list.id}`}
-        className={`block rounded-3xl overflow-hidden shadow-md hover:shadow-lg hover:scale-[1.02] transition-all ${bgClass} ${textClass}`}
-        style={bgStyle}
+        className="card flex items-center gap-4 px-4 py-4 hover:shadow-md active:scale-[0.98] transition-all block"
       >
-        <div className="bg-black/10 p-4 space-y-2">
-          <div className="flex items-center gap-2">
-            {iconDisplay}
-            <h2 className="font-bold text-lg truncate">{list.name}</h2>
-          </div>
-          <div className="text-sm opacity-80">
+        {/* Color swatch */}
+        <div className="w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center" style={swatchStyle}>
+          {iconDisplay}
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-gray-800 truncate">{list.name}</p>
+          <p className="text-xs text-gray-400 mt-0.5">
             {total === 0 ? "アイテムなし" : `${done} / ${total} 完了`}
-          </div>
+          </p>
           {total > 0 && (
-            <div className="w-full bg-white/30 rounded-full h-1.5">
+            <div className="w-full bg-orange-100 rounded-full h-1 mt-1.5">
               <div
-                className="bg-white rounded-full h-1.5 transition-all"
-                style={{ width: `${(done / total) * 100}%` }}
+                className="rounded-full h-1 transition-all"
+                style={{ width: `${(done / total) * 100}%`, background: "linear-gradient(135deg, #FF8C42, #FF6B35)" }}
               />
             </div>
           )}
         </div>
+
+        <span className="text-gray-300 text-xl flex-shrink-0">›</span>
       </Link>
 
       <button
         onClick={() => onDelete(list.id)}
-        className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full bg-black/20 text-white opacity-0 group-hover:opacity-100 hover:bg-red-500 transition-all text-sm"
+        className="absolute top-3 right-8 w-7 h-7 flex items-center justify-center rounded-full text-gray-300 opacity-0 group-hover:opacity-100 hover:text-red-400 hover:bg-red-50 transition-all text-lg"
         aria-label="リストを削除"
       >
         ×

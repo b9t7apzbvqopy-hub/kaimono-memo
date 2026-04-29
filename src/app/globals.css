@@ -4,8 +4,28 @@
 
 * {
   -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
 }
 
 body {
   font-family: var(--font-zen-maru), "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+  background: linear-gradient(168deg, #FFF8F0 0%, #FFF1E6 40%, #FFE8D6 100%);
+  min-height: 100vh;
+}
+
+.btn-orange {
+  background: linear-gradient(135deg, #FF8C42, #FF6B35);
+  color: white;
+  border-radius: 14px;
+  font-weight: 700;
+  transition: opacity 0.15s, transform 0.1s;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.35);
+}
+.btn-orange:hover { opacity: 0.92; }
+.btn-orange:active { transform: scale(0.97); }
+
+.card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
 }

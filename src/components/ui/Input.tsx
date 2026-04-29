@@ -12,11 +12,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       <input
         ref={ref}
         className={`
-          px-4 py-2 rounded-2xl
-          bg-white/70 backdrop-blur-sm
-          border border-white/50
+          px-4 py-2.5 rounded-[14px]
+          bg-orange-50/60 backdrop-blur-sm
+          border border-orange-100
           text-gray-800 placeholder-gray-400
-          focus:outline-none focus:ring-2 focus:ring-primary/50
+          focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-300
           transition-all
           ${fullWidth ? "w-full" : ""}
           ${className}
