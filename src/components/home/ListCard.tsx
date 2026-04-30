@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useAppSettings } from "@/context/AppSettingsContext";
+import { getListTheme } from "@/lib/listThemes";
+import { THEMES, DEFAULT_THEME_KEY } from "@/lib/themes";
 import type { ShoppingList } from "@/types";
 
 interface ListCardProps {
@@ -11,6 +14,12 @@ interface ListCardProps {
 
 export function ListCard({ list, onDelete }: ListCardProps) {
   const { theme } = useAppSettings();
+  const [listThemeKey, setListThemeKey] = useState<string | null>(null);
+  useEffect(() => {
+    setListThemeKey(getListTheme(list.id));
+  }, [list.id]);
+  const listTheme = THEMES[listThemeKey ?? ""] ?? THEMES[DEFAULT_THEME_KEY];
+  const accentGradient = `linear-gradient(135deg, ${listTheme.accentFrom}, ${listTheme.accentTo})`;
   const total = list.items.length;
   const done = list.items.filter((i) => i.checked).length;
 
@@ -28,7 +37,7 @@ export function ListCard({ list, onDelete }: ListCardProps) {
       >
         <div
           className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 text-white text-xl font-bold"
-          style={{ background: `linear-gradient(135deg, var(--accent-from), var(--accent-to))` }}
+          style={{ background: accentGradient }}
         >
           {list.name.charAt(0)}
         </div>
@@ -44,7 +53,7 @@ export function ListCard({ list, onDelete }: ListCardProps) {
                 className="rounded-full h-1 transition-all"
                 style={{
                   width: `${(done / total) * 100}%`,
-                  background: `linear-gradient(135deg, var(--accent-from), var(--accent-to))`,
+                  background: accentGradient,
                 }}
               />
             </div>
