@@ -17,7 +17,7 @@ interface ShoppingListPageProps {
 }
 
 export function ShoppingListPage({ initialData }: ShoppingListPageProps) {
-  const { list, toastMessage, addItem, toggleItem, editItem, deleteItem, updateMeta } =
+  const { list, toastMessage, addItem, toggleItem, editItem, deleteItem, updateName } =
     useShoppingList(initialData);
   const { addListId } = useMyLists();
   const [customizeOpen, setCustomizeOpen] = useState(false);
@@ -27,12 +27,11 @@ export function ShoppingListPage({ initialData }: ShoppingListPageProps) {
   }, [list.id, addListId]);
 
   return (
-    <BackgroundWrapper background={list.background}>
+    <BackgroundWrapper>
       <div className="min-h-screen flex flex-col">
         <div className="max-w-[440px] mx-auto w-full flex flex-col flex-1">
           <AppHeader
             name={list.name}
-            icon={list.icon}
             onCustomize={() => setCustomizeOpen(true)}
             showBack
           />
@@ -60,7 +59,7 @@ export function ShoppingListPage({ initialData }: ShoppingListPageProps) {
         list={list}
         open={customizeOpen}
         onClose={() => setCustomizeOpen(false)}
-        onSave={updateMeta}
+        onSaveName={updateName}
       />
 
       <Toast message={toastMessage} />

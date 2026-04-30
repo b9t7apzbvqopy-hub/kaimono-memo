@@ -1,19 +1,46 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMyLists } from "@/hooks/useMyLists";
+import { useAppSettings } from "@/context/AppSettingsContext";
 import { ListCard } from "./ListCard";
+import { IconPicker } from "@/components/customize/IconPicker";
 import * as storage from "@/lib/storage";
+import { ICON_PRESETS } from "@/lib/constants";
 import type { ShoppingList } from "@/types";
 
 export function MyListsPage() {
   const router = useRouter();
   const { listIds, addListId, removeListId } = useMyLists();
+  const { settings, theme, updateSettings } = useAppSettings();
   const [lists, setLists] = useState<ShoppingList[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [shareCode, setShareCode] = useState("");
+
+  // App name inline edit
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState(settings.name);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  // Icon modal
+  const [iconModalOpen, setIconModalOpen] = useState(false);
+
+  useEffect(() => {
+    setNameInput(settings.name);
+  }, [settings.name]);
+
+  useEffect(() => {
+    if (editingName) nameInputRef.current?.focus();
+  }, [editingName]);
+
+  const commitName = () => {
+    const trimmed = nameInput.trim();
+    if (trimmed) updateSettings({ name: trimmed });
+    else setNameInput(settings.name);
+    setEditingName(false);
+  };
 
   useEffect(() => {
     if (listIds.length === 0) {
@@ -24,11 +51,8 @@ export function MyListsPage() {
     const valid: ShoppingList[] = [];
     listIds.forEach((id) => {
       const list = storage.getList(id);
-      if (list) {
-        valid.push(list);
-      } else {
-        removeListId(id);
-      }
+      if (list) valid.push(list);
+      else removeListId(id);
     });
     setLists(valid);
     setLoading(false);
@@ -59,46 +83,86 @@ export function MyListsPage() {
     router.push(`/list/${id}`);
   };
 
+  const iconDisplay = settings.icon.startsWith("data:") ? (
+    <img src={settings.icon} alt="icon" className="w-12 h-12 rounded-xl object-cover" />
+  ) : (
+    <span className="text-5xl">{ICON_PRESETS[settings.icon] ?? "🛒"}</span>
+  );
+
+  const textColor = theme.isDark ? "text-white" : "text-gray-800";
+  const mutedColor = theme.isDark ? "text-white/50" : "text-gray-400";
+  const inputBg = theme.isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.8)";
+  const inputColor = theme.isDark ? "white" : "#374151";
+  const cardBg = theme.isDark ? "rgba(255,255,255,0.1)" : "white";
+
   return (
-    <div className="min-h-screen" style={{ background: "linear-gradient(168deg, #FFF8F0 0%, #FFF1E6 40%, #FFE8D6 100%)" }}>
+    <div className="min-h-screen" style={{ background: theme.gradient }}>
       <div className="max-w-[440px] mx-auto px-4 pt-12 pb-24">
 
         {/* Hero */}
         <div className="flex flex-col items-center mb-10">
-          <div
-            className="w-24 h-24 rounded-full flex items-center justify-center shadow-lg mb-5"
-            style={{ background: "linear-gradient(135deg, #FF8C42, #FF6B35)" }}
+          <button
+            onClick={() => setIconModalOpen(true)}
+            className="w-24 h-24 rounded-full flex items-center justify-center shadow-lg mb-5 transition-opacity hover:opacity-85 active:scale-95"
+            style={{ background: `linear-gradient(135deg, var(--accent-from), var(--accent-to))` }}
+            aria-label="アイコンを変更"
           >
-            <span className="text-5xl">🛒</span>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-800 tracking-wide">かいものメモ</h1>
-          <p className="text-sm text-gray-400 mt-1">みんなで使える買い物リスト</p>
+            {iconDisplay}
+          </button>
+
+          {editingName ? (
+            <input
+              ref={nameInputRef}
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              onBlur={commitName}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") commitName();
+                if (e.key === "Escape") { setNameInput(settings.name); setEditingName(false); }
+              }}
+              maxLength={20}
+              className="text-2xl font-bold text-center bg-transparent border-b-2 outline-none w-full max-w-[200px]"
+              style={{ borderColor: "var(--accent)", color: inputColor }}
+            />
+          ) : (
+            <h1
+              onClick={() => setEditingName(true)}
+              className={`text-2xl font-bold tracking-wide cursor-pointer hover:opacity-70 transition-opacity ${textColor}`}
+              title="タップして名前を変更"
+            >
+              {settings.name}
+            </h1>
+          )}
+          <p className={`text-sm mt-1 ${mutedColor}`}>みんなで使える買い物リスト</p>
         </div>
 
         {/* Create button */}
         <button
           onClick={handleCreate}
           disabled={creating}
-          className="w-full py-4 text-lg btn-orange disabled:opacity-60"
+          className="w-full py-4 text-lg btn-primary"
         >
           {creating ? "作成中..." : "+ 新しいリストを作る"}
         </button>
 
         {/* Share code input */}
-        <div className="card mt-4 p-4">
-          <p className="text-sm text-gray-500 mb-3 font-medium">共有リンク・IDから開く</p>
+        <div className="mt-4 p-4 rounded-[20px] shadow-sm" style={{ background: cardBg }}>
+          <p className={`text-sm mb-3 font-medium ${theme.isDark ? "text-white/70" : "text-gray-500"}`}>共有リンク・IDから開く</p>
           <div className="flex gap-2">
             <input
               value={shareCode}
               onChange={(e) => setShareCode(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleOpenShare()}
               placeholder="URLまたはリストIDを貼り付け"
-              className="flex-1 px-3 py-2.5 rounded-xl border border-orange-100 bg-orange-50/50 text-sm outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all"
+              className="flex-1 px-3 py-2.5 rounded-xl border text-sm outline-none transition-all"
+              style={{ background: inputBg, color: inputColor, borderColor: "rgba(0,0,0,0.12)" }}
+              onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
+              onBlur={(e) => (e.target.style.borderColor = "rgba(0,0,0,0.1)")}
             />
             <button
               onClick={handleOpenShare}
               disabled={!shareCode.trim()}
-              className="px-4 py-2.5 btn-orange text-sm disabled:opacity-40"
+              className="px-4 py-2.5 btn-primary text-sm"
             >
               開く
             </button>
@@ -108,11 +172,11 @@ export function MyListsPage() {
         {/* My lists */}
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="w-8 h-8 border-4 border-orange-300 border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: `var(--accent) transparent transparent transparent` }} />
           </div>
         ) : lists.length > 0 ? (
           <div className="mt-8">
-            <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">マイリスト</h2>
+            <h2 className={`text-xs font-bold uppercase tracking-wider mb-3 px-1 ${mutedColor}`}>マイリスト</h2>
             <div className="space-y-3">
               {lists.map((list) => (
                 <ListCard key={list.id} list={list} onDelete={handleDelete} />
@@ -121,6 +185,33 @@ export function MyListsPage() {
           </div>
         ) : null}
       </div>
+
+      {/* Icon Modal */}
+      {iconModalOpen && (
+        <>
+          <div className="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm" onClick={() => setIconModalOpen(false)} />
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md rounded-t-3xl shadow-xl max-h-[70vh] flex flex-col">
+            <div className="flex items-center justify-between px-4 pt-4 pb-2">
+              <h2 className="font-bold text-gray-800 text-lg">アイコンを選択</h2>
+              <button
+                onClick={() => setIconModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 text-lg"
+              >
+                ×
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              <IconPicker
+                current={settings.icon}
+                onChange={(icon) => {
+                  updateSettings({ icon });
+                  setIconModalOpen(false);
+                }}
+              />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

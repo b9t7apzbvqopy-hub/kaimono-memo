@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useAppSettings } from "@/context/AppSettingsContext";
 
 interface ShareButtonProps {
   listId: string;
 }
 
 export function ShareButton({ listId }: ShareButtonProps) {
+  const { theme } = useAppSettings();
   const [copied, setCopied] = useState(false);
 
   const handleShare = async () => {
@@ -19,15 +21,17 @@ export function ShareButton({ listId }: ShareButtonProps) {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       }
-    } catch {
-      // user cancelled or not supported
-    }
+    } catch {}
   };
+
+  const bg = theme.isDark ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.7)";
+  const color = theme.isDark ? "white" : "#4B5563";
 
   return (
     <button
       onClick={handleShare}
-      className="flex items-center gap-1.5 px-4 py-2 rounded-[14px] bg-white/70 hover:bg-white/90 text-sm font-medium text-gray-600 transition-colors shadow-sm backdrop-blur-sm"
+      className="flex items-center gap-1.5 px-4 py-2 rounded-[14px] text-sm font-medium transition-opacity hover:opacity-80 shadow-sm backdrop-blur-sm"
+      style={{ background: bg, color }}
       aria-label="共有"
     >
       <span>{copied ? "✓" : "🔗"}</span>

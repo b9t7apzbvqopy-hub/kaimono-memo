@@ -64,9 +64,9 @@ export function useShoppingList(initialData: ShoppingList) {
     [list.id]
   );
 
-  const updateMeta = useCallback(
-    (patch: Partial<Pick<ShoppingList, "name" | "icon" | "background">>) => {
-      const updated = storage.updateListMeta(list.id, patch);
+  const updateName = useCallback(
+    (name: string) => {
+      const updated = storage.updateListName(list.id, name);
       if (updated) {
         setList(updated);
         showToast("保存しました ✓");
@@ -75,5 +75,5 @@ export function useShoppingList(initialData: ShoppingList) {
     [list.id]
   );
 
-  return { list, toastMessage, addItem, toggleItem, editItem, deleteItem, updateMeta };
+  return { list, toastMessage, addItem, toggleItem, editItem, deleteItem, updateName };
 }

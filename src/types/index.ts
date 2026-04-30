@@ -8,9 +8,13 @@ export interface ShoppingItem {
 export interface ShoppingList {
   id: string;
   name: string;
-  icon: string;
-  background: string;
   items: ShoppingItem[];
   createdAt: number;
   updatedAt: number;
+}
+
+export interface AppSettings {
+  name: string;   // "かいものメモ"
+  icon: string;   // emoji key or "data:..."
+  theme: string;  // theme key or "data:..." for custom bg
 }

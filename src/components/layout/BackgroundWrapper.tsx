@@ -1,32 +1,18 @@
 "use client";
 
-import { BACKGROUND_THEMES } from "@/lib/constants";
-import { ReactNode } from "react";
+import { useAppSettings } from "@/context/AppSettingsContext";
+import type { ReactNode } from "react";
 
-interface BackgroundWrapperProps {
-  background: string;
-  children: ReactNode;
-}
+export function BackgroundWrapper({ children }: { children: ReactNode }) {
+  const { settings, theme } = useAppSettings();
+  const isCustom = settings.theme.startsWith("data:");
 
-export function BackgroundWrapper({ background, children }: BackgroundWrapperProps) {
-  const isCustom = background.startsWith("data:");
+  const bgStyle = isCustom
+    ? { backgroundImage: `url(${settings.theme})`, backgroundSize: "cover", backgroundPosition: "center" }
+    : { background: theme.gradient };
 
-  if (isCustom) {
-    return (
-      <div
-        className="min-h-screen bg-cover bg-center"
-        style={{ backgroundImage: `url(${background})` }}
-      >
-        {children}
-      </div>
-    );
-  }
-
-  const theme = BACKGROUND_THEMES[background] ?? BACKGROUND_THEMES.sunset;
   return (
-    <div
-      className={`min-h-screen bg-gradient-to-br ${theme.fromClass} ${theme.toClass}`}
-    >
+    <div className="min-h-screen" style={bgStyle}>
       {children}
     </div>
   );

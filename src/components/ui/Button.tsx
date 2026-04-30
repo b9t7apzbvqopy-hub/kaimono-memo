@@ -14,11 +14,10 @@ export function Button({
   children,
   ...props
 }: ButtonProps) {
-  const base =
-    "inline-flex items-center justify-center font-bold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed";
+  const base = "inline-flex items-center justify-center font-bold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed";
 
   const variants = {
-    primary: "btn-orange",
+    primary: "btn-primary",
     ghost: "bg-white/40 text-gray-700 hover:bg-white/60 backdrop-blur-sm rounded-[14px]",
     danger: "bg-red-500 text-white hover:bg-red-600 rounded-[14px]",
   };

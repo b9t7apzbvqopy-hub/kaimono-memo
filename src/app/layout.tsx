@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Zen_Maru_Gothic } from "next/font/google";
+import { AppSettingsProvider } from "@/context/AppSettingsContext";
 import "./globals.css";
 
 const zenMaru = Zen_Maru_Gothic({
@@ -22,7 +23,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" className={zenMaru.variable}>
-      <body>{children}</body>
+      <body>
+        <AppSettingsProvider>{children}</AppSettingsProvider>
+      </body>
     </html>
   );
 }

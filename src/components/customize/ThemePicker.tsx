@@ -1,14 +1,14 @@
 "use client";
 
 import { useRef } from "react";
-import { ICON_PRESETS } from "@/lib/constants";
+import { THEMES } from "@/lib/themes";
 
-interface IconPickerProps {
+interface ThemePickerProps {
   current: string;
-  onChange: (icon: string) => void;
+  onChange: (theme: string) => void;
 }
 
-export function IconPicker({ current, onChange }: IconPickerProps) {
+export function ThemePicker({ current, onChange }: ThemePickerProps) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -17,7 +17,11 @@ export function IconPicker({ current, onChange }: IconPickerProps) {
     const reader = new FileReader();
     reader.onload = async (ev) => {
       const dataUrl = ev.target?.result as string;
-      const resized = await resizeImage(dataUrl, 64, 64);
+      const resized = await resizeImage(dataUrl, 800, 600);
+      if (resized.length > 900_000) {
+        alert("画像が大きすぎます。より小さい画像を選んでください。");
+        return;
+      }
       onChange(resized);
     };
     reader.readAsDataURL(file);
@@ -29,17 +33,20 @@ export function IconPicker({ current, onChange }: IconPickerProps) {
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-4 gap-2">
-        {Object.entries(ICON_PRESETS).map(([key, emoji]) => {
+        {Object.entries(THEMES).map(([key, theme]) => {
           const selected = current === key;
           return (
             <button
               key={key}
               onClick={() => onChange(key)}
-              className="h-14 text-2xl flex items-center justify-center rounded-2xl transition-all bg-white/40 hover:bg-white/60"
-              style={selected ? { outline: "2px solid var(--accent)", outlineOffset: "1px", background: "rgba(255,255,255,0.7)" } : {}}
-              aria-label={key}
+              className="flex flex-col items-center gap-1.5 p-2 h-20 rounded-2xl transition-all bg-white/30 hover:bg-white/50"
+              style={selected ? { outline: "2px solid var(--accent)", outlineOffset: "1px", background: "rgba(255,255,255,0.6)" } : {}}
             >
-              {emoji}
+              <div
+                className="w-10 h-10 rounded-xl shadow-inner flex-shrink-0"
+                style={{ background: theme.swatch }}
+              />
+              <span className="text-xs text-gray-600">{theme.label}</span>
             </button>
           );
         })}
@@ -51,16 +58,10 @@ export function IconPicker({ current, onChange }: IconPickerProps) {
           className="w-full py-2.5 rounded-2xl text-sm text-center transition-all bg-white/40 hover:bg-white/60"
           style={isCustom ? { outline: "2px solid var(--accent)", outlineOffset: "1px" } : {}}
         >
-          {isCustom ? (
-            <span className="flex items-center justify-center gap-2">
-              <img src={current} alt="custom" className="w-6 h-6 rounded object-cover" />
-              カスタム画像を変更
-            </span>
-          ) : (
-            "📷 カメラロールから選択"
-          )}
+          {isCustom ? "📷 カスタム背景を変更" : "🖼️ 写真を背景にする"}
         </button>
         <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
+        <p className="text-xs text-gray-400 text-center mt-1">推奨: 1MB以下</p>
       </div>
     </div>
   );
@@ -77,7 +78,7 @@ async function resizeImage(dataUrl: string, maxW: number, maxH: number): Promise
       canvas.width = w;
       canvas.height = h;
       canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
-      resolve(canvas.toDataURL("image/jpeg", 0.85));
+      resolve(canvas.toDataURL("image/jpeg", 0.7));
     };
     img.src = dataUrl;
   });

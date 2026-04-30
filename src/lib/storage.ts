@@ -15,17 +15,13 @@ function load(): Record<string, ShoppingList> {
 function save(store: Record<string, ShoppingList>): void {
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify(store));
-  } catch {
-    // storage full or private mode
-  }
+  } catch {}
 }
 
 export function createList(): ShoppingList {
   const list: ShoppingList = {
     id: uuidv4(),
     name: "かいものメモ",
-    icon: "cart",
-    background: "sunset",
     items: [],
     createdAt: Date.now(),
     updatedAt: Date.now(),
@@ -40,13 +36,10 @@ export function getList(id: string): ShoppingList | null {
   return load()[id] ?? null;
 }
 
-export function updateListMeta(
-  id: string,
-  patch: Partial<Pick<ShoppingList, "name" | "icon" | "background">>
-): ShoppingList | null {
+export function updateListName(id: string, name: string): ShoppingList | null {
   const store = load();
   if (!store[id]) return null;
-  store[id] = { ...store[id], ...patch, updatedAt: Date.now() };
+  store[id] = { ...store[id], name, updatedAt: Date.now() };
   save(store);
   return store[id];
 }

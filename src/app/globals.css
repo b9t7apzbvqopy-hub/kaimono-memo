@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --accent-from: #FF8C42;
+  --accent-to: #FF6B35;
+  --accent: #FF6B35;
+}
+
 * {
   -webkit-tap-highlight-color: transparent;
   box-sizing: border-box;
@@ -9,23 +15,44 @@
 
 body {
   font-family: var(--font-zen-maru), "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
-  background: linear-gradient(168deg, #FFF8F0 0%, #FFF1E6 40%, #FFE8D6 100%);
   min-height: 100vh;
+  color: #1a1a1a;
 }
 
-.btn-orange {
-  background: linear-gradient(135deg, #FF8C42, #FF6B35);
+/* Dark theme text */
+[data-dark="true"] body {
+  color: white;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-from), var(--accent-to));
   color: white;
   border-radius: 14px;
   font-weight: 700;
   transition: opacity 0.15s, transform 0.1s;
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.35);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-.btn-orange:hover { opacity: 0.92; }
-.btn-orange:active { transform: scale(0.97); }
+.btn-primary:hover { opacity: 0.9; }
+.btn-primary:active { transform: scale(0.97); }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .card {
   background: white;
   border-radius: 20px;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+}
+
+[data-dark="true"] .card {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+[data-dark="true"] .card .text-gray-800,
+[data-dark="true"] .card .text-gray-700,
+[data-dark="true"] .card .text-gray-600,
+[data-dark="true"] .card .text-gray-500,
+[data-dark="true"] .card .text-gray-400 {
+  color: rgba(255, 255, 255, 0.85) !important;
 }
