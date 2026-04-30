@@ -8,15 +8,17 @@ interface AppHeaderProps {
   name: string;
   onCustomize?: () => void;
   showBack?: boolean;
+  listIcon?: string;
 }
 
-export function AppHeader({ name, onCustomize, showBack }: AppHeaderProps) {
+export function AppHeader({ name, onCustomize, showBack, listIcon }: AppHeaderProps) {
   const { settings, theme } = useAppSettings();
 
-  const iconDisplay = settings.icon.startsWith("data:") ? (
-    <img src={settings.icon} alt="icon" className="w-7 h-7 rounded-lg object-cover" />
+  const effectiveIcon = listIcon ?? settings.icon;
+  const iconDisplay = effectiveIcon.startsWith("data:") ? (
+    <img src={effectiveIcon} alt="icon" className="w-7 h-7 rounded-lg object-cover" />
   ) : (
-    <span className="text-xl leading-none">{ICON_PRESETS[settings.icon] ?? "🛒"}</span>
+    <span className="text-xl leading-none">{ICON_PRESETS[effectiveIcon] ?? "🛒"}</span>
   );
 
   const textColor = theme.isDark ? "text-white" : "text-gray-800";

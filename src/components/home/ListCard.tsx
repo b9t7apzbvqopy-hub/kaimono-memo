@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAppSettings } from "@/context/AppSettingsContext";
-import { getListTheme } from "@/lib/listThemes";
+import { getListTheme, getListIcon } from "@/lib/listThemes";
 import { THEMES, DEFAULT_THEME_KEY } from "@/lib/themes";
+import { ICON_PRESETS } from "@/lib/constants";
 import type { ShoppingList } from "@/types";
 
 interface ListCardProps {
@@ -15,11 +16,19 @@ interface ListCardProps {
 export function ListCard({ list, onDelete }: ListCardProps) {
   const { theme } = useAppSettings();
   const [listThemeKey, setListThemeKey] = useState<string | null>(null);
+  const [listIcon, setListIcon] = useState<string | null>(null);
   useEffect(() => {
     setListThemeKey(getListTheme(list.id));
+    setListIcon(getListIcon(list.id));
   }, [list.id]);
   const listTheme = THEMES[listThemeKey ?? ""] ?? THEMES[DEFAULT_THEME_KEY];
   const accentGradient = `linear-gradient(135deg, ${listTheme.accentFrom}, ${listTheme.accentTo})`;
+  const iconValue = listIcon ?? "cart";
+  const iconDisplay = iconValue.startsWith("data:") ? (
+    <img src={iconValue} alt="icon" className="w-7 h-7 rounded-lg object-cover" />
+  ) : (
+    <span className="text-xl leading-none">{ICON_PRESETS[iconValue] ?? "🛒"}</span>
+  );
   const total = list.items.length;
   const done = list.items.filter((i) => i.checked).length;
 
@@ -39,7 +48,7 @@ export function ListCard({ list, onDelete }: ListCardProps) {
           className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 text-white text-xl font-bold"
           style={{ background: accentGradient }}
         >
-          {list.name.charAt(0)}
+          {iconDisplay}
         </div>
 
         <div className="flex-1 min-w-0">

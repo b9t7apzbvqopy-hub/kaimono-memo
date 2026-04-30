@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { IconPicker } from "./IconPicker";
 import { ThemePicker } from "./ThemePicker";
 import { useAppSettings } from "@/context/AppSettingsContext";
-import { getListTheme, saveListTheme } from "@/lib/listThemes";
+import { getListTheme, saveListTheme, getListIcon, saveListIcon } from "@/lib/listThemes";
 import type { ShoppingList } from "@/types";
 
 type Tab = "name" | "icon" | "theme" | "font";
@@ -16,9 +16,10 @@ interface CustomizeDrawerProps {
   onClose: () => void;
   onSaveName?: (name: string) => void;
   onListThemeChange?: (themeKey: string) => void;
+  onListIconChange?: (icon: string) => void;
 }
 
-export function CustomizeDrawer({ list, listId, open, onClose, onSaveName, onListThemeChange }: CustomizeDrawerProps) {
+export function CustomizeDrawer({ list, listId, open, onClose, onSaveName, onListThemeChange, onListIconChange }: CustomizeDrawerProps) {
   const { settings, updateSettings } = useAppSettings();
   const hasListContext = !!list && !!onSaveName;
   const defaultTab: Tab = hasListContext ? "name" : "theme";
@@ -26,6 +27,7 @@ export function CustomizeDrawer({ list, listId, open, onClose, onSaveName, onLis
   const [tab, setTab] = useState<Tab>(defaultTab);
   const [name, setName] = useState(list?.name ?? "");
   const [icon, setIcon] = useState(settings.icon);
+  const [listIcon, setListIcon] = useState(settings.icon);
   const [homeTheme, setHomeTheme] = useState(settings.homeTheme);
   const [listTheme, setListTheme] = useState(settings.theme);
   const [fontSize, setFontSize] = useState(settings.fontSize);
@@ -41,10 +43,13 @@ export function CustomizeDrawer({ list, listId, open, onClose, onSaveName, onLis
       setTab(hasListContext ? "name" : "theme");
 
       if (listId) {
-        const saved = getListTheme(listId);
-        setListTheme(saved ?? settings.theme);
+        const savedTheme = getListTheme(listId);
+        setListTheme(savedTheme ?? settings.theme);
+        const savedIcon = getListIcon(listId);
+        setListIcon(savedIcon ?? settings.icon);
       } else {
         setListTheme(settings.theme);
+        setListIcon(settings.icon);
       }
     }
   }, [open, list?.name, listId, settings.icon, settings.homeTheme, settings.theme, settings.fontSize, settings.fontWeight, hasListContext]);
@@ -57,10 +62,12 @@ export function CustomizeDrawer({ list, listId, open, onClose, onSaveName, onLis
     if (listId) {
       saveListTheme(listId, listTheme);
       onListThemeChange?.(listTheme);
+      saveListIcon(listId, listIcon);
+      onListIconChange?.(listIcon);
     }
 
     if (hasListContext) {
-      updateSettings({ icon, fontSize, fontWeight });
+      updateSettings({ fontSize, fontWeight });
     } else {
       updateSettings({ icon, homeTheme, fontSize, fontWeight });
     }
@@ -125,7 +132,13 @@ export function CustomizeDrawer({ list, listId, open, onClose, onSaveName, onLis
               />
             </div>
           )}
-          {tab === "icon" && <IconPicker current={icon} onChange={setIcon} />}
+          {tab === "icon" && (
+            listId ? (
+              <IconPicker current={listIcon} onChange={setListIcon} />
+            ) : (
+              <IconPicker current={icon} onChange={setIcon} />
+            )
+          )}
           {tab === "theme" && (
             listId ? (
               <ThemePicker current={listTheme} onChange={setListTheme} />

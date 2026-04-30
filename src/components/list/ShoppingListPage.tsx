@@ -11,7 +11,7 @@ import { ItemList } from "./ItemList";
 import { ShareButton } from "./ShareButton";
 import { CustomizeDrawer } from "@/components/customize/CustomizeDrawer";
 import { Toast } from "@/components/ui/Toast";
-import { getListTheme } from "@/lib/listThemes";
+import { getListTheme, getListIcon } from "@/lib/listThemes";
 import type { ShoppingList } from "@/types";
 
 interface ShoppingListPageProps {
@@ -25,6 +25,7 @@ export function ShoppingListPage({ initialData }: ShoppingListPageProps) {
   const { settings } = useAppSettings();
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [listThemeKey, setListThemeKey] = useState<string>(settings.theme);
+  const [listIcon, setListIcon] = useState<string>(settings.icon);
 
   useEffect(() => {
     addListId(list.id);
@@ -35,8 +36,17 @@ export function ShoppingListPage({ initialData }: ShoppingListPageProps) {
     setListThemeKey(saved ?? settings.theme);
   }, [list.id, settings.theme]);
 
+  useEffect(() => {
+    const saved = getListIcon(list.id);
+    setListIcon(saved ?? settings.icon);
+  }, [list.id, settings.icon]);
+
   const handleListThemeChange = useCallback((themeKey: string) => {
     setListThemeKey(themeKey);
+  }, []);
+
+  const handleListIconChange = useCallback((icon: string) => {
+    setListIcon(icon);
   }, []);
 
   return (
@@ -48,6 +58,7 @@ export function ShoppingListPage({ initialData }: ShoppingListPageProps) {
               name={list.name}
               onCustomize={() => setCustomizeOpen(true)}
               showBack
+              listIcon={listIcon}
             />
 
             <div className="flex items-center justify-end px-4 py-2">
@@ -76,6 +87,7 @@ export function ShoppingListPage({ initialData }: ShoppingListPageProps) {
           onClose={() => setCustomizeOpen(false)}
           onSaveName={updateName}
           onListThemeChange={handleListThemeChange}
+          onListIconChange={handleListIconChange}
         />
 
         <Toast message={toastMessage} />
