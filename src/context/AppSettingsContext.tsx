@@ -70,6 +70,15 @@ export function ListThemeProvider({ themeKey, children }: { themeKey: string; ch
   const parent = useContext(AppSettingsContext);
   const listTheme = THEMES[themeKey] ?? THEMES[DEFAULT_THEME_KEY];
 
+  useEffect(() => {
+    const root = document.documentElement;
+    root.setAttribute("data-dark", listTheme.isDark ? "true" : "false");
+    return () => {
+      const parentTheme = THEMES[parent.settings.theme] ?? THEMES[DEFAULT_THEME_KEY];
+      root.setAttribute("data-dark", parentTheme.isDark ? "true" : "false");
+    };
+  }, [listTheme.isDark, parent.settings.theme]);
+
   return (
     <AppSettingsContext.Provider value={{ ...parent, theme: listTheme }}>
       {children}
