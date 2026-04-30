@@ -8,6 +8,7 @@ import { ListCard } from "./ListCard";
 import { IconPicker } from "@/components/customize/IconPicker";
 import * as api from "@/lib/api-client";
 import { ICON_PRESETS } from "@/lib/constants";
+import { Toast } from "@/components/ui/Toast";
 import type { ShoppingList } from "@/types";
 
 export function MyListsPage() {
@@ -17,6 +18,7 @@ export function MyListsPage() {
   const [lists, setLists] = useState<ShoppingList[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const [shareCode, setShareCode] = useState("");
 
   const [editingName, setEditingName] = useState(false);
@@ -51,12 +53,15 @@ export function MyListsPage() {
   const handleCreate = useCallback(async () => {
     if (creating) return;
     setCreating(true);
+    setCreateError(null);
     try {
       const list = await api.createList();
       addListId(list.id);
       router.push(`/list/${list.id}`);
     } catch {
       setCreating(false);
+      setCreateError("リストの作成に失敗しました。もう一度お試しください。");
+      setTimeout(() => setCreateError(null), 3000);
     }
   }, [addListId, router, creating]);
 
@@ -172,6 +177,8 @@ export function MyListsPage() {
           </div>
         ) : null}
       </div>
+
+      <Toast message={createError} />
 
       {/* Icon Modal */}
       {iconModalOpen && (
