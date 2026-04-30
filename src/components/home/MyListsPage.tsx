@@ -6,6 +6,7 @@ import { useMyLists } from "@/hooks/useMyLists";
 import { useAppSettings } from "@/context/AppSettingsContext";
 import { ListCard } from "./ListCard";
 import { IconPicker } from "@/components/customize/IconPicker";
+import { CustomizeDrawer } from "@/components/customize/CustomizeDrawer";
 import * as api from "@/lib/api-client";
 import { ICON_PRESETS } from "@/lib/constants";
 import { Toast } from "@/components/ui/Toast";
@@ -14,7 +15,7 @@ import type { ShoppingList } from "@/types";
 export function MyListsPage() {
   const router = useRouter();
   const { listIds, addListId, removeListId } = useMyLists();
-  const { settings, theme, updateSettings } = useAppSettings();
+  const { settings, homeTheme, updateSettings } = useAppSettings();
   const [lists, setLists] = useState<ShoppingList[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -24,6 +25,7 @@ export function MyListsPage() {
   const [nameInput, setNameInput] = useState(settings.name);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const [iconModalOpen, setIconModalOpen] = useState(false);
+  const [customizeOpen, setCustomizeOpen] = useState(false);
 
   useEffect(() => { setNameInput(settings.name); }, [settings.name]);
   useEffect(() => { if (editingName) nameInputRef.current?.focus(); }, [editingName]);
@@ -79,12 +81,16 @@ export function MyListsPage() {
     <span className="text-5xl">{ICON_PRESETS[settings.icon] ?? "🛒"}</span>
   );
 
-  const textColor = theme.isDark ? "text-white" : "text-gray-800";
-  const mutedColor = theme.isDark ? "text-white/50" : "text-gray-400";
-  const inputColor = theme.isDark ? "white" : "#374151";
+  const textColor = homeTheme.isDark ? "text-white" : "text-gray-800";
+  const mutedColor = homeTheme.isDark ? "text-white/50" : "text-gray-400";
+  const inputColor = homeTheme.isDark ? "white" : "#374151";
+
+  const homeBgStyle = settings.homeTheme.startsWith("data:")
+    ? { backgroundImage: `url(${settings.homeTheme})`, backgroundSize: "cover", backgroundPosition: "center" }
+    : { background: homeTheme.gradient };
 
   return (
-    <div className="min-h-screen" style={{ background: theme.gradient }}>
+    <div className="min-h-screen" style={homeBgStyle}>
       <div className="max-w-[440px] mx-auto px-4 pt-12 pb-24">
 
         {/* Hero */}
@@ -122,6 +128,16 @@ export function MyListsPage() {
             </h1>
           )}
           <p className={`text-sm mt-1 ${mutedColor}`}>みんなで使える買い物リスト</p>
+          <button
+            onClick={() => setCustomizeOpen(true)}
+            className="mt-3 px-4 py-1.5 rounded-full text-xs transition-all hover:opacity-80"
+            style={{
+              background: homeTheme.isDark ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.6)",
+              color: homeTheme.isDark ? "rgba(255,255,255,0.7)" : "#6B7280",
+            }}
+          >
+            ✏️ カスタマイズ
+          </button>
         </div>
 
         {/* Create */}
@@ -166,6 +182,11 @@ export function MyListsPage() {
           </div>
         </>
       )}
+
+      <CustomizeDrawer
+        open={customizeOpen}
+        onClose={() => setCustomizeOpen(false)}
+      />
     </div>
   );
 }

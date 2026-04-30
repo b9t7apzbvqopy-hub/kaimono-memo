@@ -9,42 +9,49 @@ import type { ShoppingList } from "@/types";
 type Tab = "name" | "icon" | "theme" | "font";
 
 interface CustomizeDrawerProps {
-  list: ShoppingList;
+  list?: ShoppingList;
   open: boolean;
   onClose: () => void;
-  onSaveName: (name: string) => void;
+  onSaveName?: (name: string) => void;
 }
 
 export function CustomizeDrawer({ list, open, onClose, onSaveName }: CustomizeDrawerProps) {
   const { settings, updateSettings } = useAppSettings();
-  const [tab, setTab] = useState<Tab>("name");
-  const [name, setName] = useState(list.name);
+  const hasListContext = !!list && !!onSaveName;
+  const defaultTab: Tab = hasListContext ? "name" : "theme";
+
+  const [tab, setTab] = useState<Tab>(defaultTab);
+  const [name, setName] = useState(list?.name ?? "");
   const [icon, setIcon] = useState(settings.icon);
+  const [homeTheme, setHomeTheme] = useState(settings.homeTheme);
   const [theme, setTheme] = useState(settings.theme);
   const [fontSize, setFontSize] = useState(settings.fontSize);
   const [fontWeight, setFontWeight] = useState(settings.fontWeight);
 
   useEffect(() => {
     if (open) {
-      setName(list.name);
+      setName(list?.name ?? "");
       setIcon(settings.icon);
+      setHomeTheme(settings.homeTheme);
       setTheme(settings.theme);
       setFontSize(settings.fontSize);
       setFontWeight(settings.fontWeight);
-      setTab("name");
+      setTab(hasListContext ? "name" : "theme");
     }
-  }, [open, list.name, settings.icon, settings.theme, settings.fontSize, settings.fontWeight]);
+  }, [open, list?.name, settings.icon, settings.homeTheme, settings.theme, settings.fontSize, settings.fontWeight, hasListContext]);
 
   const handleSave = () => {
-    onSaveName(name.trim() || list.name);
-    updateSettings({ icon, theme, fontSize, fontWeight });
+    if (hasListContext) {
+      onSaveName(name.trim() || list.name);
+    }
+    updateSettings({ icon, homeTheme, theme, fontSize, fontWeight });
     onClose();
   };
 
   if (!open) return null;
 
   const TABS: { key: Tab; label: string }[] = [
-    { key: "name", label: "リスト名" },
+    ...(hasListContext ? [{ key: "name" as Tab, label: "リスト名" }] : []),
     { key: "icon", label: "アイコン" },
     { key: "theme", label: "背景" },
     { key: "font", label: "文字" },
@@ -82,7 +89,7 @@ export function CustomizeDrawer({ list, open, onClose, onSaveName }: CustomizeDr
         </div>
 
         <div className="flex-1 overflow-y-auto p-4">
-          {tab === "name" && (
+          {tab === "name" && hasListContext && (
             <div className="space-y-2">
               <label className="text-sm text-gray-500">リスト名</label>
               <input
@@ -99,7 +106,18 @@ export function CustomizeDrawer({ list, open, onClose, onSaveName }: CustomizeDr
             </div>
           )}
           {tab === "icon" && <IconPicker current={icon} onChange={setIcon} />}
-          {tab === "theme" && <ThemePicker current={theme} onChange={setTheme} />}
+          {tab === "theme" && (
+            <div className="space-y-6">
+              <div>
+                <p className="text-sm text-gray-500 mb-3">🏠 トップ画面</p>
+                <ThemePicker current={homeTheme} onChange={setHomeTheme} />
+              </div>
+              <div className="border-t border-gray-200 pt-4">
+                <p className="text-sm text-gray-500 mb-3">📝 リスト画面</p>
+                <ThemePicker current={theme} onChange={setTheme} />
+              </div>
+            </div>
+          )}
           {tab === "font" && (
             <div className="space-y-6">
               <div>

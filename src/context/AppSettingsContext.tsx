@@ -15,12 +15,14 @@ import type { ThemeDef } from "@/lib/themes";
 interface ContextValue {
   settings: AppSettings;
   theme: ThemeDef;
+  homeTheme: ThemeDef;
   updateSettings: (patch: Partial<AppSettings>) => void;
 }
 
 const AppSettingsContext = createContext<ContextValue>({
   settings: DEFAULT_APP_SETTINGS,
   theme: THEMES[DEFAULT_THEME_KEY],
+  homeTheme: THEMES[DEFAULT_THEME_KEY],
   updateSettings: () => {},
 });
 
@@ -40,6 +42,7 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
   }, []);
 
   const theme = THEMES[settings.theme] ?? THEMES[DEFAULT_THEME_KEY];
+  const homeTheme = THEMES[settings.homeTheme] ?? THEMES[DEFAULT_THEME_KEY];
 
   useEffect(() => {
     const root = document.documentElement;
@@ -53,7 +56,7 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
   }, [theme, settings.fontSize, settings.fontWeight]);
 
   return (
-    <AppSettingsContext.Provider value={{ settings, theme, updateSettings }}>
+    <AppSettingsContext.Provider value={{ settings, theme, homeTheme, updateSettings }}>
       {children}
     </AppSettingsContext.Provider>
   );

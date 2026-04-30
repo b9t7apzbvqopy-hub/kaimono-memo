@@ -6,6 +6,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   name: "かいものメモ",
   icon: "cart",
   theme: "sunset",
+  homeTheme: "sunset",
   fontSize: "medium",
   fontWeight: "normal",
 };

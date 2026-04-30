@@ -17,6 +17,7 @@ export interface AppSettings {
   name: string;
   icon: string;
   theme: string;
+  homeTheme: string;
   fontSize: "small" | "medium" | "large";
   fontWeight: "normal" | "bold";
 }
