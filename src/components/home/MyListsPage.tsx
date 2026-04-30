@@ -6,7 +6,7 @@ import { useMyLists } from "@/hooks/useMyLists";
 import { useAppSettings } from "@/context/AppSettingsContext";
 import { ListCard } from "./ListCard";
 import { IconPicker } from "@/components/customize/IconPicker";
-import * as storage from "@/lib/storage";
+import * as api from "@/lib/api-client";
 import { ICON_PRESETS } from "@/lib/constants";
 import type { ShoppingList } from "@/types";
 
@@ -19,21 +19,13 @@ export function MyListsPage() {
   const [creating, setCreating] = useState(false);
   const [shareCode, setShareCode] = useState("");
 
-  // App name inline edit
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(settings.name);
   const nameInputRef = useRef<HTMLInputElement>(null);
-
-  // Icon modal
   const [iconModalOpen, setIconModalOpen] = useState(false);
 
-  useEffect(() => {
-    setNameInput(settings.name);
-  }, [settings.name]);
-
-  useEffect(() => {
-    if (editingName) nameInputRef.current?.focus();
-  }, [editingName]);
+  useEffect(() => { setNameInput(settings.name); }, [settings.name]);
+  useEffect(() => { if (editingName) nameInputRef.current?.focus(); }, [editingName]);
 
   const commitName = () => {
     const trimmed = nameInput.trim();
@@ -43,33 +35,34 @@ export function MyListsPage() {
   };
 
   useEffect(() => {
-    if (listIds.length === 0) {
+    if (listIds.length === 0) { setLoading(false); setLists([]); return; }
+    setLoading(true);
+    Promise.all(listIds.map((id) => api.getList(id))).then((results) => {
+      const valid: ShoppingList[] = [];
+      results.forEach((list, i) => {
+        if (list) valid.push(list);
+        else removeListId(listIds[i]);
+      });
+      setLists(valid);
       setLoading(false);
-      setLists([]);
-      return;
-    }
-    const valid: ShoppingList[] = [];
-    listIds.forEach((id) => {
-      const list = storage.getList(id);
-      if (list) valid.push(list);
-      else removeListId(id);
     });
-    setLists(valid);
-    setLoading(false);
   }, [listIds.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleCreate = useCallback(() => {
+  const handleCreate = useCallback(async () => {
     if (creating) return;
     setCreating(true);
-    const list = storage.createList();
-    addListId(list.id);
-    router.push(`/list/${list.id}`);
+    try {
+      const list = await api.createList();
+      addListId(list.id);
+      router.push(`/list/${list.id}`);
+    } catch {
+      setCreating(false);
+    }
   }, [addListId, router, creating]);
 
   const handleDelete = useCallback(
     (id: string) => {
-      if (!confirm("このリストを削除しますか？")) return;
-      storage.deleteList(id);
+      if (!confirm("このリストをマイリストから削除しますか？")) return;
       removeListId(id);
       setLists((prev) => prev.filter((l) => l.id !== id));
     },
@@ -80,6 +73,7 @@ export function MyListsPage() {
     const code = shareCode.trim();
     if (!code) return;
     const id = code.includes("/") ? code.split("/").pop()! : code;
+    addListId(id);
     router.push(`/list/${id}`);
   };
 
@@ -121,7 +115,7 @@ export function MyListsPage() {
                 if (e.key === "Escape") { setNameInput(settings.name); setEditingName(false); }
               }}
               maxLength={20}
-              className="text-2xl font-bold text-center bg-transparent border-b-2 outline-none w-full max-w-[200px]"
+              className="text-2xl font-bold text-center bg-transparent border-b-2 outline-none w-full max-w-[220px]"
               style={{ borderColor: "var(--accent)", color: inputColor }}
             />
           ) : (
@@ -136,18 +130,16 @@ export function MyListsPage() {
           <p className={`text-sm mt-1 ${mutedColor}`}>みんなで使える買い物リスト</p>
         </div>
 
-        {/* Create button */}
-        <button
-          onClick={handleCreate}
-          disabled={creating}
-          className="w-full py-4 text-lg btn-primary"
-        >
+        {/* Create */}
+        <button onClick={handleCreate} disabled={creating} className="w-full py-4 text-lg btn-primary">
           {creating ? "作成中..." : "+ 新しいリストを作る"}
         </button>
 
-        {/* Share code input */}
+        {/* Share code */}
         <div className="mt-4 p-4 rounded-[20px] shadow-sm" style={{ background: cardBg }}>
-          <p className={`text-sm mb-3 font-medium ${theme.isDark ? "text-white/70" : "text-gray-500"}`}>共有リンク・IDから開く</p>
+          <p className={`text-sm mb-3 font-medium ${theme.isDark ? "text-white/70" : "text-gray-500"}`}>
+            共有リンク・IDから参加
+          </p>
           <div className="flex gap-2">
             <input
               value={shareCode}
@@ -157,13 +149,9 @@ export function MyListsPage() {
               className="flex-1 px-3 py-2.5 rounded-xl border text-sm outline-none transition-all"
               style={{ background: inputBg, color: inputColor, borderColor: "rgba(0,0,0,0.12)" }}
               onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
-              onBlur={(e) => (e.target.style.borderColor = "rgba(0,0,0,0.1)")}
+              onBlur={(e) => (e.target.style.borderColor = "rgba(0,0,0,0.12)")}
             />
-            <button
-              onClick={handleOpenShare}
-              disabled={!shareCode.trim()}
-              className="px-4 py-2.5 btn-primary text-sm"
-            >
+            <button onClick={handleOpenShare} disabled={!shareCode.trim()} className="px-4 py-2.5 btn-primary text-sm">
               開く
             </button>
           </div>
@@ -172,15 +160,14 @@ export function MyListsPage() {
         {/* My lists */}
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: `var(--accent) transparent transparent transparent` }} />
+            <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin"
+              style={{ borderColor: `var(--accent) transparent transparent transparent` }} />
           </div>
         ) : lists.length > 0 ? (
           <div className="mt-8">
             <h2 className={`text-xs font-bold uppercase tracking-wider mb-3 px-1 ${mutedColor}`}>マイリスト</h2>
             <div className="space-y-3">
-              {lists.map((list) => (
-                <ListCard key={list.id} list={list} onDelete={handleDelete} />
-              ))}
+              {lists.map((list) => <ListCard key={list.id} list={list} onDelete={handleDelete} />)}
             </div>
           </div>
         ) : null}
@@ -193,20 +180,13 @@ export function MyListsPage() {
           <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md rounded-t-3xl shadow-xl max-h-[70vh] flex flex-col">
             <div className="flex items-center justify-between px-4 pt-4 pb-2">
               <h2 className="font-bold text-gray-800 text-lg">アイコンを選択</h2>
-              <button
-                onClick={() => setIconModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 text-lg"
-              >
-                ×
-              </button>
+              <button onClick={() => setIconModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 text-lg">×</button>
             </div>
             <div className="flex-1 overflow-y-auto p-4">
               <IconPicker
                 current={settings.icon}
-                onChange={(icon) => {
-                  updateSettings({ icon });
-                  setIconModalOpen(false);
-                }}
+                onChange={(icon) => { updateSettings({ icon }); setIconModalOpen(false); }}
               />
             </div>
           </div>
