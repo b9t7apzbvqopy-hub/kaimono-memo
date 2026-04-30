@@ -4,18 +4,21 @@ import { useEffect, useState } from "react";
 import { IconPicker } from "./IconPicker";
 import { ThemePicker } from "./ThemePicker";
 import { useAppSettings } from "@/context/AppSettingsContext";
+import { getListTheme, saveListTheme } from "@/lib/listThemes";
 import type { ShoppingList } from "@/types";
 
 type Tab = "name" | "icon" | "theme" | "font";
 
 interface CustomizeDrawerProps {
   list?: ShoppingList;
+  listId?: string;
   open: boolean;
   onClose: () => void;
   onSaveName?: (name: string) => void;
+  onListThemeChange?: (themeKey: string) => void;
 }
 
-export function CustomizeDrawer({ list, open, onClose, onSaveName }: CustomizeDrawerProps) {
+export function CustomizeDrawer({ list, listId, open, onClose, onSaveName, onListThemeChange }: CustomizeDrawerProps) {
   const { settings, updateSettings } = useAppSettings();
   const hasListContext = !!list && !!onSaveName;
   const defaultTab: Tab = hasListContext ? "name" : "theme";
@@ -24,7 +27,7 @@ export function CustomizeDrawer({ list, open, onClose, onSaveName }: CustomizeDr
   const [name, setName] = useState(list?.name ?? "");
   const [icon, setIcon] = useState(settings.icon);
   const [homeTheme, setHomeTheme] = useState(settings.homeTheme);
-  const [theme, setTheme] = useState(settings.theme);
+  const [listTheme, setListTheme] = useState(settings.theme);
   const [fontSize, setFontSize] = useState(settings.fontSize);
   const [fontWeight, setFontWeight] = useState(settings.fontWeight);
 
@@ -33,18 +36,35 @@ export function CustomizeDrawer({ list, open, onClose, onSaveName }: CustomizeDr
       setName(list?.name ?? "");
       setIcon(settings.icon);
       setHomeTheme(settings.homeTheme);
-      setTheme(settings.theme);
       setFontSize(settings.fontSize);
       setFontWeight(settings.fontWeight);
       setTab(hasListContext ? "name" : "theme");
+
+      if (listId) {
+        const saved = getListTheme(listId);
+        setListTheme(saved ?? settings.theme);
+      } else {
+        setListTheme(settings.theme);
+      }
     }
-  }, [open, list?.name, settings.icon, settings.homeTheme, settings.theme, settings.fontSize, settings.fontWeight, hasListContext]);
+  }, [open, list?.name, listId, settings.icon, settings.homeTheme, settings.theme, settings.fontSize, settings.fontWeight, hasListContext]);
 
   const handleSave = () => {
     if (hasListContext) {
-      onSaveName(name.trim() || list.name);
+      onSaveName!(name.trim() || list!.name);
     }
-    updateSettings({ icon, homeTheme, theme, fontSize, fontWeight });
+
+    if (listId) {
+      saveListTheme(listId, listTheme);
+      onListThemeChange?.(listTheme);
+    }
+
+    if (hasListContext) {
+      updateSettings({ icon, fontSize, fontWeight });
+    } else {
+      updateSettings({ icon, homeTheme, fontSize, fontWeight });
+    }
+
     onClose();
   };
 
@@ -107,16 +127,11 @@ export function CustomizeDrawer({ list, open, onClose, onSaveName }: CustomizeDr
           )}
           {tab === "icon" && <IconPicker current={icon} onChange={setIcon} />}
           {tab === "theme" && (
-            <div className="space-y-6">
-              <div>
-                <p className="text-sm text-gray-500 mb-3">🏠 トップ画面</p>
-                <ThemePicker current={homeTheme} onChange={setHomeTheme} />
-              </div>
-              <div className="border-t border-gray-200 pt-4">
-                <p className="text-sm text-gray-500 mb-3">📝 リスト画面</p>
-                <ThemePicker current={theme} onChange={setTheme} />
-              </div>
-            </div>
+            listId ? (
+              <ThemePicker current={listTheme} onChange={setListTheme} />
+            ) : (
+              <ThemePicker current={homeTheme} onChange={setHomeTheme} />
+            )
           )}
           {tab === "font" && (
             <div className="space-y-6">

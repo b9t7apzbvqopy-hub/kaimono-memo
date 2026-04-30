@@ -65,3 +65,14 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
 export function useAppSettings() {
   return useContext(AppSettingsContext);
 }
+
+export function ListThemeProvider({ themeKey, children }: { themeKey: string; children: React.ReactNode }) {
+  const parent = useContext(AppSettingsContext);
+  const listTheme = THEMES[themeKey] ?? THEMES[DEFAULT_THEME_KEY];
+
+  return (
+    <AppSettingsContext.Provider value={{ ...parent, theme: listTheme }}>
+      {children}
+    </AppSettingsContext.Provider>
+  );
+}
