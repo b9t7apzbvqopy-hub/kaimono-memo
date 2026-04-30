@@ -47,7 +47,10 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
     root.style.setProperty("--accent-to", theme.accentTo);
     root.style.setProperty("--accent", theme.accent);
     root.setAttribute("data-dark", theme.isDark ? "true" : "false");
-  }, [theme]);
+    const fontSizeMap = { small: "13px", medium: "16px", large: "20px" };
+    root.style.fontSize = fontSizeMap[settings.fontSize] ?? "16px";
+    root.style.setProperty("--font-weight-body", settings.fontWeight === "bold" ? "700" : "400");
+  }, [theme, settings.fontSize, settings.fontWeight]);
 
   return (
     <AppSettingsContext.Provider value={{ settings, theme, updateSettings }}>

@@ -14,7 +14,9 @@ export interface ShoppingList {
 }
 
 export interface AppSettings {
-  name: string;   // "かいものメモ"
-  icon: string;   // emoji key or "data:..."
-  theme: string;  // theme key or "data:..." for custom bg
+  name: string;
+  icon: string;
+  theme: string;
+  fontSize: "small" | "medium" | "large";
+  fontWeight: "normal" | "bold";
 }

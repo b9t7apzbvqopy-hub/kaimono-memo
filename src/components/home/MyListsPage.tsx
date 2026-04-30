@@ -19,7 +19,6 @@ export function MyListsPage() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
-  const [shareCode, setShareCode] = useState("");
 
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(settings.name);
@@ -74,14 +73,6 @@ export function MyListsPage() {
     [removeListId]
   );
 
-  const handleOpenShare = () => {
-    const code = shareCode.trim();
-    if (!code) return;
-    const id = code.includes("/") ? code.split("/").pop()! : code;
-    addListId(id);
-    router.push(`/list/${id}`);
-  };
-
   const iconDisplay = settings.icon.startsWith("data:") ? (
     <img src={settings.icon} alt="icon" className="w-12 h-12 rounded-xl object-cover" />
   ) : (
@@ -90,9 +81,7 @@ export function MyListsPage() {
 
   const textColor = theme.isDark ? "text-white" : "text-gray-800";
   const mutedColor = theme.isDark ? "text-white/50" : "text-gray-400";
-  const inputBg = theme.isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.8)";
   const inputColor = theme.isDark ? "white" : "#374151";
-  const cardBg = theme.isDark ? "rgba(255,255,255,0.1)" : "white";
 
   return (
     <div className="min-h-screen" style={{ background: theme.gradient }}>
@@ -139,28 +128,6 @@ export function MyListsPage() {
         <button onClick={handleCreate} disabled={creating} className="w-full py-4 text-lg btn-primary">
           {creating ? "作成中..." : "+ 新しいリストを作る"}
         </button>
-
-        {/* Share code */}
-        <div className="mt-4 p-4 rounded-[20px] shadow-sm" style={{ background: cardBg }}>
-          <p className={`text-sm mb-3 font-medium ${theme.isDark ? "text-white/70" : "text-gray-500"}`}>
-            共有リンク・IDから参加
-          </p>
-          <div className="flex gap-2">
-            <input
-              value={shareCode}
-              onChange={(e) => setShareCode(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleOpenShare()}
-              placeholder="URLまたはリストIDを貼り付け"
-              className="flex-1 px-3 py-2.5 rounded-xl border text-sm outline-none transition-all"
-              style={{ background: inputBg, color: inputColor, borderColor: "rgba(0,0,0,0.12)" }}
-              onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
-              onBlur={(e) => (e.target.style.borderColor = "rgba(0,0,0,0.12)")}
-            />
-            <button onClick={handleOpenShare} disabled={!shareCode.trim()} className="px-4 py-2.5 btn-primary text-sm">
-              開く
-            </button>
-          </div>
-        </div>
 
         {/* My lists */}
         {loading ? (

@@ -6,7 +6,7 @@ import { ThemePicker } from "./ThemePicker";
 import { useAppSettings } from "@/context/AppSettingsContext";
 import type { ShoppingList } from "@/types";
 
-type Tab = "name" | "icon" | "theme";
+type Tab = "name" | "icon" | "theme" | "font";
 
 interface CustomizeDrawerProps {
   list: ShoppingList;
@@ -21,19 +21,23 @@ export function CustomizeDrawer({ list, open, onClose, onSaveName }: CustomizeDr
   const [name, setName] = useState(list.name);
   const [icon, setIcon] = useState(settings.icon);
   const [theme, setTheme] = useState(settings.theme);
+  const [fontSize, setFontSize] = useState(settings.fontSize);
+  const [fontWeight, setFontWeight] = useState(settings.fontWeight);
 
   useEffect(() => {
     if (open) {
       setName(list.name);
       setIcon(settings.icon);
       setTheme(settings.theme);
+      setFontSize(settings.fontSize);
+      setFontWeight(settings.fontWeight);
       setTab("name");
     }
-  }, [open, list.name, settings.icon, settings.theme]);
+  }, [open, list.name, settings.icon, settings.theme, settings.fontSize, settings.fontWeight]);
 
   const handleSave = () => {
     onSaveName(name.trim() || list.name);
-    updateSettings({ icon, theme });
+    updateSettings({ icon, theme, fontSize, fontWeight });
     onClose();
   };
 
@@ -43,6 +47,7 @@ export function CustomizeDrawer({ list, open, onClose, onSaveName }: CustomizeDr
     { key: "name", label: "リスト名" },
     { key: "icon", label: "アイコン" },
     { key: "theme", label: "背景" },
+    { key: "font", label: "文字" },
   ];
 
   return (
@@ -95,6 +100,55 @@ export function CustomizeDrawer({ list, open, onClose, onSaveName }: CustomizeDr
           )}
           {tab === "icon" && <IconPicker current={icon} onChange={setIcon} />}
           {tab === "theme" && <ThemePicker current={theme} onChange={setTheme} />}
+          {tab === "font" && (
+            <div className="space-y-6">
+              <div>
+                <p className="text-sm text-gray-500 mb-3">文字サイズ</p>
+                <div className="flex gap-2">
+                  {(["small", "medium", "large"] as const).map((size) => {
+                    const labels = { small: "小", medium: "中", large: "大" };
+                    const selected = fontSize === size;
+                    return (
+                      <button
+                        key={size}
+                        onClick={() => setFontSize(size)}
+                        className="flex-1 py-3 rounded-2xl text-sm font-medium transition-all"
+                        style={selected
+                          ? { outline: "2px solid var(--accent)", outlineOffset: "1px", background: "rgba(255,255,255,0.7)", color: "var(--accent)" }
+                          : { background: "rgba(255,255,255,0.4)", color: "#6B7280" }}
+                      >
+                        {labels[size]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 mb-3">文字の太さ</p>
+                <div className="flex gap-2">
+                  {(["normal", "bold"] as const).map((weight) => {
+                    const labels = { normal: "普通", bold: "太字" };
+                    const selected = fontWeight === weight;
+                    return (
+                      <button
+                        key={weight}
+                        onClick={() => setFontWeight(weight)}
+                        className="flex-1 py-3 rounded-2xl text-sm transition-all"
+                        style={{
+                          fontWeight: weight === "bold" ? 700 : 400,
+                          ...(selected
+                            ? { outline: "2px solid var(--accent)", outlineOffset: "1px", background: "rgba(255,255,255,0.7)", color: "var(--accent)" }
+                            : { background: "rgba(255,255,255,0.4)", color: "#6B7280" }),
+                        }}
+                      >
+                        {labels[weight]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="p-4 border-t border-gray-100">
