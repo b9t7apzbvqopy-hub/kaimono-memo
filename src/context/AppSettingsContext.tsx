@@ -46,14 +46,14 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     const root = document.documentElement;
-    root.style.setProperty("--accent-from", theme.accentFrom);
-    root.style.setProperty("--accent-to", theme.accentTo);
-    root.style.setProperty("--accent", theme.accent);
-    root.setAttribute("data-dark", theme.isDark ? "true" : "false");
+    root.style.setProperty("--accent-from", homeTheme.accentFrom);
+    root.style.setProperty("--accent-to", homeTheme.accentTo);
+    root.style.setProperty("--accent", homeTheme.accent);
+    root.setAttribute("data-dark", homeTheme.isDark ? "true" : "false");
     const fontSizeMap = { small: "13px", medium: "16px", large: "20px" };
     root.style.fontSize = fontSizeMap[settings.fontSize] ?? "16px";
     root.style.setProperty("--font-weight-body", settings.fontWeight === "bold" ? "700" : "400");
-  }, [theme, settings.fontSize, settings.fontWeight]);
+  }, [homeTheme, settings.fontSize, settings.fontWeight]);
 
   return (
     <AppSettingsContext.Provider value={{ settings, theme, homeTheme, updateSettings }}>
@@ -74,10 +74,10 @@ export function ListThemeProvider({ themeKey, children }: { themeKey: string; ch
     const root = document.documentElement;
     root.setAttribute("data-dark", listTheme.isDark ? "true" : "false");
     return () => {
-      const parentTheme = THEMES[parent.settings.theme] ?? THEMES[DEFAULT_THEME_KEY];
+      const parentTheme = THEMES[parent.settings.homeTheme] ?? THEMES[DEFAULT_THEME_KEY];
       root.setAttribute("data-dark", parentTheme.isDark ? "true" : "false");
     };
-  }, [listTheme.isDark, parent.settings.theme]);
+  }, [listTheme.isDark, parent.settings.homeTheme]);
 
   return (
     <AppSettingsContext.Provider value={{ ...parent, theme: listTheme }}>
