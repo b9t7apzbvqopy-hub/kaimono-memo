@@ -16,6 +16,7 @@ export interface ShoppingList {
 export interface AppSettings {
   name: string;
   icon: string;
+  iconColor: string;
   theme: string;
   homeTheme: string;
   fontSize: "small" | "medium" | "large";

@@ -2,14 +2,27 @@
 
 import { useRef } from "react";
 import { ICON_PRESETS } from "@/lib/constants";
+import { useAppSettings } from "@/context/AppSettingsContext";
 
 interface IconPickerProps {
   current: string;
   onChange: (icon: string) => void;
 }
 
+const ICON_COLORS = [
+  "#FF6B35",
+  "#2D9B6A",
+  "#7C4DBC",
+  "#3574D4",
+  "#D4507A",
+  "#B09030",
+  "#E94560",
+  "#4A8B40",
+];
+
 export function IconPicker({ current, onChange }: IconPickerProps) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const { settings, updateSettings } = useAppSettings();
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -25,6 +38,7 @@ export function IconPicker({ current, onChange }: IconPickerProps) {
   };
 
   const isCustom = current.startsWith("data:");
+  const currentColor = settings.iconColor;
 
   return (
     <div className="space-y-3">
@@ -61,6 +75,41 @@ export function IconPicker({ current, onChange }: IconPickerProps) {
           )}
         </button>
         <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
+      </div>
+
+      <div className="pt-3 border-t border-gray-200">
+        <p className="text-sm text-gray-500 mb-3">アイコンの色</p>
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => updateSettings({ iconColor: "" })}
+            className="w-10 h-10 rounded-full transition-all flex items-center justify-center"
+            style={{
+              background: "linear-gradient(135deg, var(--accent-from), var(--accent-to))",
+              outline: currentColor === "" ? "2px solid #1a1a1a" : "none",
+              outlineOffset: "2px",
+            }}
+            aria-label="テーマの色"
+            title="テーマの色"
+          >
+            <span className="text-white text-xs font-bold">A</span>
+          </button>
+          {ICON_COLORS.map((color) => {
+            const selected = currentColor === color;
+            return (
+              <button
+                key={color}
+                onClick={() => updateSettings({ iconColor: color })}
+                className="w-10 h-10 rounded-full transition-all"
+                style={{
+                  background: color,
+                  outline: selected ? "2px solid #1a1a1a" : "none",
+                  outlineOffset: "2px",
+                }}
+                aria-label={color}
+              />
+            );
+          })}
+        </div>
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ const KEY = "kaimono_app_settings";
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   name: "かいものメモ",
   icon: "cart",
+  iconColor: "",
   theme: "sunset",
   homeTheme: "sunset",
   fontSize: "medium",

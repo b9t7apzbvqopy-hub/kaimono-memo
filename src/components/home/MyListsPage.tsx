@@ -98,7 +98,11 @@ export function MyListsPage() {
           <button
             onClick={() => setIconModalOpen(true)}
             className="w-24 h-24 rounded-full flex items-center justify-center shadow-lg mb-5 transition-opacity hover:opacity-85 active:scale-95"
-            style={{ background: `linear-gradient(135deg, var(--accent-from), var(--accent-to))` }}
+            style={{
+              background: settings.iconColor
+                ? settings.iconColor
+                : `linear-gradient(135deg, var(--accent-from), var(--accent-to))`,
+            }}
             aria-label="アイコンを変更"
           >
             {iconDisplay}
